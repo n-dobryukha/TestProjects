@@ -14,10 +14,6 @@
     <artifactId>simple-program-hotrod-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <properties>
-        <infinispan.version>8.2.0.Final</infinispan.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.infinispan</groupId>
@@ -33,12 +29,6 @@
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-remote</artifactId>
             <version>${infinispan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
