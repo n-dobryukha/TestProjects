@@ -1,0 +1,6 @@
+package com.ndobryukha.tests.infinispan.entity;
+
+message User {
+    required int64 id = 1;
+    required string userName = 2;
+}

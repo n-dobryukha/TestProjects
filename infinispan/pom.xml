@@ -26,5 +26,13 @@
 			<url>${jboss.releases.repo.url}</url>
 		</repository>
 	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.infinispan.protostream</groupId>
+			<artifactId>protostream</artifactId>
+			<version>3.0.5.Final</version>
+		</dependency>
+	</dependencies>
 	
 </project>

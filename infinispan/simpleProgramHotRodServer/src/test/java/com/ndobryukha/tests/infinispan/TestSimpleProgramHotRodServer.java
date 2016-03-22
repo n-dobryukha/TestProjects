@@ -1,9 +1,13 @@
 package com.ndobryukha.tests.infinispan;
 
+import com.ndobryukha.tests.infinispan.entity.Book;
+import com.ndobryukha.tests.infinispan.marshaller.BookMarshaller;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.Search;
 import org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller;
 import org.infinispan.commons.equivalence.ByteArrayEquivalence;
+import org.infinispan.commons.util.Util;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.cache.Index;
@@ -12,10 +16,18 @@ import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.jmx.PlatformMBeanServerLookup;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.protostream.FileDescriptorSource;
+import org.infinispan.protostream.SerializationContext;
+import org.infinispan.query.dsl.Query;
+import org.infinispan.query.dsl.QueryFactory;
+import org.infinispan.query.remote.client.MarshallerRegistration;
+import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
 import org.infinispan.server.hotrod.HotRodServer;
 import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuilder;
 import org.junit.*;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -30,8 +42,9 @@ public class TestSimpleProgramHotRodServer extends Assert {
 	private static final RemoteCacheManager remoteCacheManager = createRemoteCacheManager();
 
 	@BeforeClass
-	public static void setUp() {
+	public static void setUp() throws IOException {
 		startServer();
+		configureRemoteCacheManager();
 	}
 
 	@AfterClass
@@ -41,10 +54,23 @@ public class TestSimpleProgramHotRodServer extends Assert {
 	}
 
 
+	@Ignore
 	@Test
 	public void testRemoteCacheManager() {
-		RemoteCache<String, String> remoteCache = remoteCacheManager.getCache(TEST_CACHE_NAME);
+		RemoteCache<String, Book> remoteCache = remoteCacheManager.getCache(TEST_CACHE_NAME);
 		assertNotNull(remoteCache);
+		String key = UUID.randomUUID().toString();
+		Book entity = new Book("title", "description", 2000);
+		remoteCache.put(key, entity);
+		assertEquals(remoteCache.size(), 1);
+		assertEquals(entity, remoteCache.get(key));
+		QueryFactory qf = Search.getQueryFactory(remoteCache);
+		Query query = qf.from(Book.class)
+				.having("title").eq("title").toBuilder()
+				.build();
+		List<Book> books = query.list();
+		assertFalse(books.isEmpty());
+		assertEquals(entity, books.get(0));
 	}
 
 	private static void startServer() {
@@ -87,4 +113,17 @@ public class TestSimpleProgramHotRodServer extends Assert {
 		return new RemoteCacheManager(clientBuilder.build());
 	}
 
+	private static void configureRemoteCacheManager() throws IOException {
+		remoteCacheManager.getCache(TEST_CACHE_NAME);
+		//initialize server-side serialization
+		RemoteCache<String, String> metadataCache = remoteCacheManager.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME);
+		metadataCache.put("book.proto", Util.read(TestSimpleProgramHotRodServer.class.getResourceAsStream("/book.proto")));
+		assertFalse(metadataCache.containsKey(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX));
+		SerializationContext srzCtx = ProtoStreamMarshaller.getSerializationContext(remoteCacheManager);
+		FileDescriptorSource fds = new FileDescriptorSource();
+		fds.addProtoFiles("/book.proto");
+		srzCtx.registerProtoFiles(fds);
+		srzCtx.registerMarshaller(new BookMarshaller());
+		MarshallerRegistration.registerMarshallers(srzCtx);
+	}
 }

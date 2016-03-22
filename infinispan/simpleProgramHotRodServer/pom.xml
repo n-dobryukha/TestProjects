@@ -9,12 +9,21 @@
 		<artifactId>infinispan</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+
+    <properties>
+        <infinispan.version>8.2.0.Final</infinispan.version>
+    </properties>
 	
     <groupId>com.ndobryukha.tests.infinispan</groupId>
     <artifactId>simple-program-hotrod-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <dependencies>
+        <dependency>
+            <groupId>com.ndobryukha.tests.infinispan</groupId>
+            <artifactId>commons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-server-hotrod</artifactId>
@@ -27,8 +36,19 @@
         </dependency>
         <dependency>
             <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-client-hotrod</artifactId>
+            <version>8.2.0.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
             <artifactId>infinispan-remote</artifactId>
             <version>${infinispan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-remote-query-server</artifactId>
+            <version>${infinispan.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

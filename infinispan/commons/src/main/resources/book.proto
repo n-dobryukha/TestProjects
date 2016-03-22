@@ -1,0 +1,7 @@
+package com.ndobryukha.tests.infinispan.entity;
+
+message Book {
+    required string title = 1;
+    required string description = 2;
+    required int32 publishYear = 3;
+}
