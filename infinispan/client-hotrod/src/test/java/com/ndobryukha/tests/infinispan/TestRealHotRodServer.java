@@ -19,7 +19,10 @@ import org.infinispan.query.dsl.Query;
 import org.infinispan.query.dsl.QueryFactory;
 import org.infinispan.query.remote.client.MarshallerRegistration;
 import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,8 +54,8 @@ public class TestRealHotRodServer extends Assert {
 	private static RemoteCacheManager createRemoteCacheManager() {
 		ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.addServer()
-				.host("localhost")
-				.port(Integer.parseInt("11222"))
+				.host("10.11.13.220")
+				.port(11222)
 				.marshaller(new ProtoStreamMarshaller());
 		return new RemoteCacheManager(builder.build());
 	}
@@ -83,7 +86,6 @@ public class TestRealHotRodServer extends Assert {
 		cache.clear();
 	}
 
-	@Ignore
 	@Test
 	public void testBooksCache() throws IOException {
 		RemoteCache<Long, Book> cache = remoteCacheManager.getCache(BOOKS_CACHE_NAME);
@@ -98,7 +100,25 @@ public class TestRealHotRodServer extends Assert {
 		assertFalse(list.isEmpty());
 	}
 
-	@Ignore
+
+	@Test
+	public void testBooksCacheBenchmark() {
+		final int MAX_CACHE_COUNT = 100_000;
+		RemoteCache<Long, Book> cache = remoteCacheManager.getCache(BOOKS_CACHE_NAME);
+		for (int i = 0; i < MAX_CACHE_COUNT; i++) {
+			cache.put(UUID.randomUUID().getMostSignificantBits(), new Book("title" + i, "description" + i, 2000));
+		}
+		QueryFactory qf = Search.getQueryFactory(cache);
+		for (int i = 0; i < 250; i++) {
+			Query query = qf.from(Book.class).having("title").eq("title" + i*100).toBuilder().build();
+			long startSearch = System.currentTimeMillis();
+			List<Book> list = query.list();
+			long finish = System.currentTimeMillis();
+			LOG.info(String.format("search #%d: time = %.3fs", i, (finish - startSearch)/1000.0));
+		}
+		cache.clear();
+	}
+
 	@Test
 	public void testUsersCache() throws IOException {
 		RemoteCache<Long, User> cache = remoteCacheManager.getCache(USERS_CACHE_NAME);
