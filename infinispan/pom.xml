@@ -15,7 +15,7 @@
 
 	<properties>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/content/groups/public/</jboss.releases.repo.url>
-		<infinispan.version>8.2.0.Final</infinispan.version>
+		<infinispan.version>8.2.1.Final</infinispan.version>
 	</properties>
 	
 	<repositories>
