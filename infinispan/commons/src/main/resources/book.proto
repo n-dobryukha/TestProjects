@@ -1,6 +1,13 @@
 package com.ndobryukha.tests.infinispan.entity;
 
+/**
+ * @Indexed(true)
+ * @TypeId(42)
+ */
 message Book {
+    /**
+    * @IndexedField(index=true)
+    */
     required string title = 1;
     required string description = 2;
     required int32 publishYear = 3;
